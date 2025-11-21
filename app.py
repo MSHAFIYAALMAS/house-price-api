@@ -74,7 +74,7 @@ st.markdown("""
 # ---------------------------------------------------
 st.markdown("""
     <div class="header">
-        <h1>🏙️ Premium House Price Prediction</h1>
+        <h1>🏙️ House Price Prediction</h1>
         <p>Enter home details to get an estimated price</p>
     </div>
 """, unsafe_allow_html=True)
@@ -149,3 +149,4 @@ if st.button("🔍 Predict Price"):
 # Footer
 # ---------------------------------------------------
 st.markdown("<div class='footer'>Developed with ❤️ using Streamlit + PyTorch</div>", unsafe_allow_html=True)
+
