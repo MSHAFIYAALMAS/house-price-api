@@ -3,13 +3,13 @@ import torch
 import torch.nn as nn
 
 # ---------------------------------------------------
-# PyTorch Model Definition
+# PyTorch Model
 # ---------------------------------------------------
 class HouseModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(6, 32),
+            nn.Linear(5, 32),
             nn.ReLU(),
             nn.Linear(32, 16),
             nn.ReLU(),
@@ -32,80 +32,77 @@ def load_model():
 model = load_model()
 
 # ---------------------------------------------------
-# Page Styling
+# Page config + CSS
 # ---------------------------------------------------
-st.set_page_config(page_title="Advanced House Price Predictor", layout="centered")
+st.set_page_config(page_title="Premium House Price Predictor", layout="centered")
 
 st.markdown("""
     <style>
-        .title {
+        .header {
             text-align: center;
-            font-size: 36px;
-            font-weight: 700;
-            color: #2E86C1;
-        }
-        .subtitle {
-            text-align: center;
-            font-size: 18px;
-            color: #555;
+            padding: 20px;
+            background: linear-gradient(135deg, #4F8EF7, #63E2FF);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 20px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
         }
         .card {
-            background: #ffffff;
-            padding: 25px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 28px;
             border-radius: 14px;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.12);
+            backdrop-filter: blur(10px);
+            box-shadow: 0px 4px 18px rgba(0,0,0,0.12);
             margin-bottom: 20px;
         }
         .result-box {
-            background-color: #E8F8F5;
+            background-color: #EAFBF1;
             padding: 18px;
             border-radius: 12px;
-            border-left: 6px solid #1ABC9C;
+            border-left: 6px solid #2ECC71;
+        }
+        .footer {
+            text-align: center;
+            color: #888;
+            margin-top: 25px;
         }
     </style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# Title
+# Header
 # ---------------------------------------------------
-st.markdown("<h1 class='title'>🏙️ Advanced House Price Prediction</h1>", unsafe_allow_html=True)
-st.markdown("<p class='subtitle'>Provide complete property details to estimate the house price</p>", unsafe_allow_html=True)
-st.write("")
+st.markdown("""
+    <div class="header">
+        <h1>🏙️ Premium House Price Prediction</h1>
+        <p>Enter home details to get an estimated price</p>
+    </div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# Input Form
+# Input Section
 # ---------------------------------------------------
-with st.container():
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
+st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
+col1, col2 = st.columns(2)
 
-    with col1:
-        sqft = st.number_input("📏 Total Area (Sqft)", min_value=500, max_value=8000, value=1200)
-        bhk = st.number_input("🛏️ BHK", min_value=1, max_value=10, value=3)
-        bathroom = st.number_input("🚿 Bathrooms", min_value=1, max_value=10, value=2)
+with col1:
+    sqft = st.number_input("📏 Total Area (Sqft)", min_value=500, max_value=8000, value=1200)
+    bhk = st.number_input("🛏️ BHK", min_value=1, max_value=10, value=3)
+    bathroom = st.number_input("🚿 Bathrooms", min_value=1, max_value=10, value=2)
 
-    with col2:
-        carpet = st.number_input("📐 Carpet Area (Sqft)", min_value=300, max_value=5000, value=900)
-        age = st.slider("🏚 Property Age (Years)", 0, 30, 5)
-        furnishing = st.selectbox("🛋️ Furnishing Status", ["Unfurnished", "Semi-furnished", "Fully furnished"])
-
-    # Location Input
+with col2:
+    age = st.slider("🏚 Property Age (Years)", 0, 30, 5)
+    furnishing = st.selectbox("🛋️ Furnishing Status", ["Unfurnished", "Semi-furnished", "Fully furnished"])
     location = st.selectbox(
         "📍 Location",
         ["Mumbai", "Bangalore", "Chennai", "Hyderabad", "Delhi", "Pune", "Kolkata"]
     )
 
-    # Amenities
-    amenities = st.multiselect(
-        "✨ Extra Amenities",
-        ["Parking", "Lift", "Security", "Power Backup", "Gym", "Swimming Pool"]
-    )
-
-    st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# Convert Inputs
+# Encoding
 # ---------------------------------------------------
 furnish_map = {
     "Unfurnished": 0,
@@ -113,7 +110,7 @@ furnish_map = {
     "Fully furnished": 2
 }
 
-location_map = {
+loc_map = {
     "Mumbai": 1,
     "Bangalore": 2,
     "Chennai": 3,
@@ -123,41 +120,34 @@ location_map = {
     "Kolkata": 7
 }
 
-amenity_score = len(amenities)  # simple scoring, can be improved
-
 # ---------------------------------------------------
-# Prediction Button
+# Prediction
 # ---------------------------------------------------
-predict = st.button("🔍 Predict House Price")
+predict_btn = st.button("🔍 Predict Price")
 
-if predict:
+if predict_btn:
+
     x = torch.tensor([[
         sqft,
         bhk,
         bathroom,
-        carpet,
         age,
-        amenity_score
+        furnish_map[furnishing]
     ]], dtype=torch.float32)
 
     price = model(x).item()
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<div class='result-box'>", unsafe_allow_html=True)
-
-    st.subheader("💰 Estimated Price")
+    st.subheader("💰 Estimated House Price")
     st.success(f"₹ {price:,.2f}")
-
-    st.write(f"**Location:** {location}  ")
-    st.write(f"**Furnishing:** {furnishing}  ")
-    st.write(f"**Amenities Included:** {', '.join(amenities) if amenities else 'None'}")
-
+    st.write(f"📍 **Location:** {location}")
+    st.write(f"🛋️ **Furnishing:** {furnishing}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.caption("⚠️ This model is not trained — numbers are placeholders.")
+    st.caption("⚠️ This model is untrained, predictions may not be accurate.")
 
 # ---------------------------------------------------
 # Footer
 # ---------------------------------------------------
-st.write("---")
-st.markdown("<p style='text-align:center;color:#888;'>Developed with ❤️ using Streamlit + PyTorch</p>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Developed with ❤️ using Streamlit + PyTorch</div>", unsafe_allow_html=True)
