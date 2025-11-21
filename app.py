@@ -32,7 +32,7 @@ def load_model():
 model = load_model()
 
 # ---------------------------------------------------
-# Page config + CSS
+# Page Config + CSS
 # ---------------------------------------------------
 st.set_page_config(page_title="Premium House Price Predictor", layout="centered")
 
@@ -44,27 +44,27 @@ st.markdown("""
             background: linear-gradient(135deg, #4F8EF7, #63E2FF);
             border-radius: 12px;
             color: white;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
         }
         .card {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.90);
             padding: 28px;
             border-radius: 14px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(6px);
             box-shadow: 0px 4px 18px rgba(0,0,0,0.12);
             margin-bottom: 20px;
         }
         .result-box {
-            background-color: #EAFBF1;
+            background-color: #E8F8F5;
             padding: 18px;
             border-radius: 12px;
-            border-left: 6px solid #2ECC71;
+            border-left: 6px solid #1ABC9C;
         }
         .footer {
             text-align: center;
             color: #888;
-            margin-top: 25px;
+            margin-top: 30px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -102,7 +102,7 @@ with col2:
 st.markdown("</div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# Encoding
+# Encoding for model
 # ---------------------------------------------------
 furnish_map = {
     "Unfurnished": 0,
@@ -110,7 +110,7 @@ furnish_map = {
     "Fully furnished": 2
 }
 
-loc_map = {
+location_map = {
     "Mumbai": 1,
     "Bangalore": 2,
     "Chennai": 3,
@@ -123,21 +123,19 @@ loc_map = {
 # ---------------------------------------------------
 # Prediction
 # ---------------------------------------------------
-predict_btn = st.button("🔍 Predict Price")
-
-if predict_btn:
-
+if st.button("🔍 Predict Price"):
     x = torch.tensor([[
         sqft,
         bhk,
         bathroom,
         age,
-        furnish_map[furnishing]
+        furnish_map[furnishing]  # Only 5 features → matches model input
     ]], dtype=torch.float32)
 
     price = model(x).item()
 
     st.markdown("<br>", unsafe_allow_html=True)
+
     st.markdown("<div class='result-box'>", unsafe_allow_html=True)
     st.subheader("💰 Estimated House Price")
     st.success(f"₹ {price:,.2f}")
@@ -145,7 +143,7 @@ if predict_btn:
     st.write(f"🛋️ **Furnishing:** {furnishing}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.caption("⚠️ This model is untrained, predictions may not be accurate.")
+    st.caption("⚠️ Note: This model is untrained. Predictions may not be accurate.")
 
 # ---------------------------------------------------
 # Footer
