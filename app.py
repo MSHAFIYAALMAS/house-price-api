@@ -9,19 +9,16 @@ class HouseModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(5, 32),
+            nn.Linear(2, 16),
             nn.ReLU(),
-            nn.Linear(32, 16),
+            nn.Linear(16, 8),
             nn.ReLU(),
-            nn.Linear(16, 1)
+            nn.Linear(8, 1)
         )
 
     def forward(self, x):
         return self.net(x)
 
-# ---------------------------------------------------
-# Load Model
-# ---------------------------------------------------
 @st.cache_resource
 def load_model():
     model = HouseModel()
@@ -32,121 +29,84 @@ def load_model():
 model = load_model()
 
 # ---------------------------------------------------
-# Page Config + CSS
+# PAGE CONFIG
 # ---------------------------------------------------
-st.set_page_config(page_title="Premium House Price Predictor", layout="centered")
+st.set_page_config(page_title="Smart Home Valuator", layout="wide")
 
+# Custom CSS for New UI
 st.markdown("""
-    <style>
-        .header {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #4F8EF7, #63E2FF);
-            border-radius: 12px;
-            color: white;
-            margin-bottom: 25px;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
-        }
-        .card {
-            background: rgba(255, 255, 255, 0.90);
-            padding: 28px;
-            border-radius: 14px;
-            backdrop-filter: blur(6px);
-            box-shadow: 0px 4px 18px rgba(0,0,0,0.12);
-            margin-bottom: 20px;
-        }
-        .result-box {
-            background-color: #E8F8F5;
-            padding: 18px;
-            border-radius: 12px;
-            border-left: 6px solid #1ABC9C;
-        }
-        .footer {
-            text-align: center;
-            color: #888;
-            margin-top: 30px;
-        }
-    </style>
+<style>
+body {
+    background-color: #f7f9fc;
+}
+.header-box {
+    background: linear-gradient(135deg, #1e88e5, #42a5f5);
+    padding: 28px 20px;
+    border-radius: 18px;
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+}
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+.price-box {
+    background: #e3f2fd;
+    padding: 25px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+</style>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# Header
+# HEADER
 # ---------------------------------------------------
-st.markdown("""
-    <div class="header">
-        <h1>🏙️ House Price Prediction</h1>
-        <p>Enter home details to get an estimated price</p>
-    </div>
-""", unsafe_allow_html=True)
+st.markdown("<div class='header-box'><h1>🏡 Smart Home Price Valuator</h1><p>AI-powered real estate price predictor</p></div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# Input Section
+# LAYOUT
 # ---------------------------------------------------
-st.markdown("<div class='card'>", unsafe_allow_html=True)
+left, right = st.columns([1.2, 1])
 
-col1, col2 = st.columns(2)
+with left:
+    st.markdown("### 📌 Enter Property Information")
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
 
-with col1:
-    sqft = st.number_input("📏 Total Area (Sqft)", min_value=500, max_value=8000, value=1200)
-    bhk = st.number_input("🛏️ BHK", min_value=1, max_value=10, value=3)
-    bathroom = st.number_input("🚿 Bathrooms", min_value=1, max_value=10, value=2)
+    sqft = st.slider("Total Area (sqft)", 400, 6000, 1200)
+    bhk = st.selectbox("Bedrooms (BHK)", [1, 2, 3, 4, 5])
+    location = st.selectbox("Location", ["Bangalore", "Hyderabad", "Chennai", "Mumbai", "Pune"])
 
-with col2:
-    age = st.slider("🏚 Property Age (Years)", 0, 30, 5)
-    furnishing = st.selectbox("🛋️ Furnishing Status", ["Unfurnished", "Semi-furnished", "Fully furnished"])
-    location = st.selectbox(
-        "📍 Location",
-        ["Mumbai", "Bangalore", "Chennai", "Hyderabad", "Delhi", "Pune", "Kolkata"]
-    )
+    age = st.number_input("Age of House (Years)", 0, 30, 5)
+    furnished = st.selectbox("Furnishing", ["Furnished", "Semi-Furnished", "Unfurnished"])
+    balcony = st.selectbox("Balconies", [0, 1, 2, 3])
+    parking = st.selectbox("Parking", ["Yes", "No"])
 
-st.markdown("</div>", unsafe_allow_html=True)
+    submit = st.button("🔍 Predict Price", use_container_width=True)
 
-# ---------------------------------------------------
-# Encoding for model
-# ---------------------------------------------------
-furnish_map = {
-    "Unfurnished": 0,
-    "Semi-furnished": 1,
-    "Fully furnished": 2
-}
-
-location_map = {
-    "Mumbai": 1,
-    "Bangalore": 2,
-    "Chennai": 3,
-    "Hyderabad": 4,
-    "Delhi": 5,
-    "Pune": 6,
-    "Kolkata": 7
-}
-
-# ---------------------------------------------------
-# Prediction
-# ---------------------------------------------------
-if st.button("🔍 Predict Price"):
-    x = torch.tensor([[
-        sqft,
-        bhk,
-        bathroom,
-        age,
-        furnish_map[furnishing]  # Only 5 features → matches model input
-    ]], dtype=torch.float32)
-
-    price = model(x).item()
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("<div class='result-box'>", unsafe_allow_html=True)
-    st.subheader("💰 Estimated House Price")
-    st.success(f"₹ {price:,.2f}")
-    st.write(f"📍 **Location:** {location}")
-    st.write(f"🛋️ **Furnishing:** {furnishing}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.caption("⚠️ Note: This model is untrained. Predictions may not be accurate.")
+with right:
+    st.markdown("### 💰 Estimated Value")
+    st.markdown("<div class='price-box'>", unsafe_allow_html=True)
+
+    if submit:
+        x = torch.tensor([[sqft, bhk]], dtype=torch.float32)
+        predicted_value = model(x).item()
+        final_price = predicted_value * 5000
+
+        st.success(f"## ₹ {final_price:,.2f}")
+    else:
+        st.info("Fill details and click *Predict Price*.")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# Footer
+# FOOTER
 # ---------------------------------------------------
-st.markdown("<div class='footer'>Developed with ❤️ using Streamlit + PyTorch</div>", unsafe_allow_html=True)
-
+st.write("---")
+st.caption("🔧 Built with Streamlit • Powered by PyTorch • Designed for Real Estate Intelligence")
